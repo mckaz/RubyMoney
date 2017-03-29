@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
   s.license     = "MIT"
 
   s.add_dependency 'i18n', ['>= 0.6.4', '< 0.9']
+  s.add_dependency "sixarm_ruby_unaccent"
 
   s.add_development_dependency "bundler", "~> 1.3"
   s.add_development_dependency "rake"
