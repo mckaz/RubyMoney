@@ -18,7 +18,7 @@ class Money
     #
     # @example
     #    - Money.new(100) #=> #<Money @fractional=-100>
-    type '(Money in) -> Money out {{ in.fractional = -out.fractional }}'
+    type '() -> Money out {{ self.fractional = -out.fractional }}'
     def -@
       self.class.new(-fractional, currency)
     end
