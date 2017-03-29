@@ -4,6 +4,8 @@
 - [ ] Mixin proper behavior 
 - [ ] Print verification location
 - [ ] Add test suite 
+  - [x] Add Travis Support
+  - [ ] Add verificatio bench in the test suite
 - [ ] Switch from type checking to verification 
   - [ ] Add assume statements
   - [ ] Translate const
