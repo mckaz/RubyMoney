@@ -12,6 +12,12 @@ class Money
       end
     end
 
+    # Library annotations 
+    type :raise,  '(Class, String) -> %bot'
+    type :raise,  '(Class) -> %bot'
+
+
+
     # Returns a money object with changed polarity.
     #
     # @return [Money]
@@ -63,6 +69,15 @@ class Money
     #
     # @raise [TypeError] when other object is not Money
     #
+
+    ## NV: The below type is conservative but generalization requires occurence typing
+    ## NV: Parser bug? initial `rescue Money::Bank::UnknownRate` would not type check
+
+    type Kernel, :respond_to?, '(%any) -> %bool'
+    type Money, :zero?, '() -> %bool'
+    type Money, :exchange_to, '(%real) -> Money'
+    type '(Money) -> Object', typecheck: :now
+
     def <=>(other)
       unless other.is_a?(Money)
         return unless other.respond_to?(:zero?) && other.zero?
@@ -70,7 +85,9 @@ class Money
       end
       other = other.exchange_to(currency)
       fractional <=> other.fractional
-    rescue Money::Bank::UnknownRate
+    rescue 
+      Money::Bank::UnknownRate
+#   rescue Money::Bank::UnknownRate
     end
 
     # Uses Comparable's implementation but raises ArgumentError if non-zero
@@ -164,7 +181,6 @@ class Money
     type Bignum, :value, '() -> %integer'
     type Fixnum, :value, '() -> %integer'
     type Money,  :name,  '() -> String'
-    type Money::Arithmetic,  :raise,  '(Class, String) -> %bot'
     type Money,  :name,  '() -> String'
     type '(%integer) -> Money m {{ m.fractional == self.fractional * value }}', typecheck: :now
     def *(value)
