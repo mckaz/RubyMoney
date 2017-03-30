@@ -91,7 +91,7 @@ class Money
     #   Money.new(1).positive?  #=> true
     #   Money.new(0).positive?  #=> false
     #   Money.new(-1).positive? #=> false
-    type '() -> %bool b {{ b == self.fractional > 0 }}', typecheck: :call#verify: :now
+    type '() -> %bool b {{ b == self.fractional > 0 }}', typecheck: :now
     def positive?
       fractional > 0
     end
@@ -161,7 +161,12 @@ class Money
     # @example
     #   Money.new(100) * 2 #=> #<Money @fractional=200>
     #
-    type '(%integer i) -> Money m {{ m.fractional == self.fractional * value }}'
+    type Bignum, :value, '() -> %integer'
+    type Fixnum, :value, '() -> %integer'
+    type Money,  :name,  '() -> String'
+    type Money::Arithmetic,  :raise,  '(Class, String) -> %bot'
+    type Money,  :name,  '() -> String'
+    type '(%integer) -> Money m {{ m.fractional == self.fractional * value }}', typecheck: :now
     def *(value)
       value = value.value if value.is_a?(CoercedNumeric)
       if value.is_a? Numeric
@@ -290,7 +295,7 @@ class Money
     #
     # @example
     #   Money.new(-100).abs #=> #<Money @fractional=100>
-    type '() -> Money m {{ if self.fractional >= 0 then m.fractional == self.fractional else m.fractional == -self.fractional end }}'
+    type '() -> Money m {{ if self.fractional >= 0 then m.fractional == self.fractional else m.fractional == -self.fractional end }}', typecheck: :now
     def abs
       self.class.new(fractional.abs, currency)
     end
@@ -302,7 +307,7 @@ class Money
     # @example
     #   Money.new(100).zero? #=> false
     #   Money.new(0).zero?   #=> true
-    type '() -> %bool b {{ b == (self.fractional == 0) }}'
+    type '() -> %bool b {{ b == (self.fractional == 0) }}', typecheck: :now
     def zero?
       fractional == 0
     end
@@ -315,6 +320,7 @@ class Money
     # @example
     #   Money.new(100).nonzero? #=> #<Money @fractional=100>
     #   Money.new(0).nonzero?   #=> nil
+    type '() -> %bool'
     def nonzero?
       fractional != 0 ? self : nil
     end
