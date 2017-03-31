@@ -1,11 +1,16 @@
 
 - [ ] NV typeckecking of arithmetic
+  - [ ] CoercedNumeric#iszero? is not parsed. 
+  - [ ] coerce requires iszero?
+  - [ ] remainder required occurence typing 
+  - [ ] rewrite `supers` and `rescue`
 - [ ] NV Read JIT paper 
 - [ ] Mixin proper behavior 
 - [ ] Print verification location
 - [ ] Add test suite 
   - [x] Add Travis Support
-  - [ ] Add verificatio bench in the test suite
+  - [ ] Add verification bench in the test suite
+- [ ] Ask Emina about recursive function
 - [ ] Switch from type checking to verification 
   - [ ] Add assume statements
   - [ ] Translate const
