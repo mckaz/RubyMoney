@@ -7,23 +7,39 @@ class Money
     # when numeric was on the 1st place in operation.
     CoercedNumeric = Struct.new(:value) do
       # Proxy #zero? method to skip unnecessary typecasts. See #- and #+.
-      type  :zero?, '() -> %bool'
+      # NV TODO this is not accepted 
+      # type Money::Arithmetic::CoercedNumeric, :zero?, '() -> %bool'
       def zero?
         value.zero?
       end
     end
 
     # Library annotations 
-    type :raise,  '(Class, String) -> %bot'
-    type :raise,  '(Class) -> %bot'
-    type Class, :new, '(%real, %real) -> %bot'
-    type Money::Arithmetic, :class, '() -> Class'
-    type Money::Arithmetic, :fractional, '() -> %real'
-    type Money, :fractional, '() -> %real'
-    type Money, :currency,   '() -> %real'
-    type Money, :cents,   '() -> %real'
-    type Money::Arithmetic, :currency,   '() -> %real'
+    type Kernel, :respond_to?, '(%any) -> %bool'
 
+    type Money, :fractional,  '() -> %real'
+    type Money, :currency,    '() -> %real'
+    type Money, :cents,       '() -> %real'
+    type Money, :zero?,       '() -> %bool'
+    type Money, :exchange_to, '(%real) -> Money'
+    type Money, :<,           '(Money or %real) -> %bool'
+    type Money, :-,           '(Money or %real) -> Money or %real'
+    type Money, :>,           '(Money or %real) -> %bool'
+
+    type Money::Arithmetic, :fractional, '() -> %real'
+    type Money::Arithmetic, :currency,   '() -> %real'
+    type Money::Arithmetic, :as_d,       '(%real or Money) -> %real'
+
+    type Class, :new, '(%real, %real) -> %bot'
+
+    type Bignum, :value, '() -> %integer'
+    type Fixnum, :value, '() -> %integer'
+
+    type Rational,   :exchange_to, '(Object) -> Money'
+    type Float,      :exchange_to, '(%real) -> Money'
+    type BigDecimal, :exchange_to, '(%real) -> Money'
+    type Bignum,     :exchange_to, '(%real) -> Money'
+    type Fixnum,     :exchange_to, '(%real) -> Money'
 
     # Returns a money object with changed polarity.
     #
@@ -74,11 +90,7 @@ class Money
     ## NV: The below type is conservative but generalization requires occurence typing
     ## NV: Parser bug? initial `rescue Money::Bank::UnknownRate` would not type check
 
-    type Kernel, :respond_to?, '(%any) -> %bool'
-    type Money, :zero?, '() -> %bool'
-    type Money, :exchange_to, '(%real) -> Money'
     type '(Money) -> Object', typecheck: :now
-
     def <=>(other)
       unless other.is_a?(Money)
         return unless other.respond_to?(:zero?) && other.zero?
@@ -128,7 +140,6 @@ class Money
     #   Money.new(0).negative?  #=> false
     #   Money.new(1).negative?  #=> false
 
-    type Money::Arithmetic, :fractional, '() -> %real'
     type :negative?, '() -> %bool b {{ b = self.fractional < 0 }}', typecheck: :now
     def negative?
       fractional < 0
@@ -185,10 +196,7 @@ class Money
     # @example
     #   Money.new(100) * 2 #=> #<Money @fractional=200>
     #
-    type Bignum, :value, '() -> %integer'
-    type Fixnum, :value, '() -> %integer'
-    type Money,  :name,  '() -> String'
-    type Money,  :name,  '() -> String'
+
     type '(%integer) -> Money m {{ m.fractional == self.fractional * value }}', typecheck: :now
     def *(value)
       value = value.value if value.is_a?(CoercedNumeric)
@@ -214,13 +222,7 @@ class Money
     #   Money.new(100) / 10            #=> #<Money @fractional=10>
     #   Money.new(100) / Money.new(10) #=> 10.0
     #
-    type Rational, :exchange_to, '(Object) -> Money'
-    type Float, :exchange_to, '(%real) -> Money'
-    type BigDecimal, :exchange_to, '(%real) -> Money'
-    type Bignum, :exchange_to, '(%real) -> Money'
-    type Fixnum, :exchange_to, '(%real) -> Money'
-    type Money::Arithmetic, :as_d, '(%real or Money) -> %real'
-    type '(%real) -> Money or %real m {{ m.fractional == self.fractional * value }}', typecheck: :now
+   type '(%real) -> Money or %real m {{ m.fractional == self.fractional * value }}', typecheck: :now
    def /(value)
       if value.is_a?(self.class)
         fractional / as_d(value.exchange_to(currency).fractional).to_f
@@ -255,6 +257,7 @@ class Money
     #   Money.new(100).divmod(9)            #=> [#<Money @fractional=11>, #<Money @fractional=1>]
     #   Money.new(100).divmod(Money.new(9)) #=> [11, #<Money @fractional=1>]
     # type here
+
    type Money::Arithmetic, :divmod_money, '(%real or Money) -> [%real, Money]', typecheck: :now 
    type Money::Arithmetic, :divmod_other, '(%real or Money) -> [%real, Money]', typecheck: :now 
    type '(%real) -> [%real, Money]', typecheck: :now 
@@ -315,14 +318,6 @@ class Money
     #
     # @example
     #   Money.new(100).remainder(9) #=> #<Money @fractional=1>
-    type Bignum, :currency, '() -> %real'
-    type Fixnum, :currency, '() -> %real'
-    type BigDecimal, :currency, '() -> %real'
-    type Rational, :currency, '() -> %real'
-    type Float, :currency, '() -> %real'
-    type Money, :<, '(Money or %real) -> %bool'
-    type Money, :-, '(Money or %real) -> Money or %real'
-    type Money, :>, '(Money or %real) -> %bool'
 
     # NV TODO: requires occurence typing 
     type '(%real or Money) -> %real or Money' 
@@ -352,7 +347,7 @@ class Money
     end
 
 
-  type '(%real) -> %real or Money', typecheck: :now 
+    type '(%real) -> %real or Money', typecheck: :now 
     def remainder_real(val)
       if (fractional < 0 && val < 0) || (fractional > 0 && val > 0)
         self.modulo(val)
