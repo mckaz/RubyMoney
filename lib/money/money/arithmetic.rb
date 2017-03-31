@@ -17,7 +17,7 @@ class Money
     # Library annotations 
     type Kernel, :respond_to?, '(%any) -> %bool'
 
-    type Money, :fractional,  '() -> %real'
+    type Money, :fractional,  '() -> %real', typecheck: :now, mixin: :true
     type Money, :currency,    '() -> %real'
     type Money, :cents,       '() -> %real'
     type Money, :zero?,       '() -> %bool'
@@ -26,7 +26,7 @@ class Money
     type Money, :-,           '(Money or %real) -> Money or %real'
     type Money, :>,           '(Money or %real) -> %bool'
 
-    type Money::Arithmetic, :fractional, '() -> %real'
+    type Money::Arithmetic, :fractional, '() -> %real', typecheck: :now, mixin: :true
     type Money::Arithmetic, :currency,   '() -> %real'
     type Money::Arithmetic, :as_d,       '(%real or Money) -> %real'
 
