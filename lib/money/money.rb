@@ -5,11 +5,12 @@ require 'types/core'
 require "money/bank/variable_exchange"
 require "money/bank/single_currency"
 
-type Money, :fractional, '() -> Fixnum', typecheck: :now 
+type Money, :fractional,  '() -> Fixnum', typecheck: :now 
 type Money, :currency,    '() -> %real'
-type Money, :cents,       '() -> %real'
+type Money, :cents,       '() -> Fixnum', typecheck: :now 
 type Money, :zero?,       '() -> %bool'
-type Money, :exchange_to, '(%real) -> Money'
+type Money, :exchange_to, '(%real) -> Money' 
+# type Money, :exchange_to, '(%real) ?{(%real) -> %real} -> Money' # , typecheck: :now
 type Money, :<,           '(Money or %real) -> %bool'
 type Money, :-,           '(Money or %real) -> Money or %real'
 type Money, :>,           '(Money or %real) -> %bool'
@@ -62,7 +63,7 @@ class Money
   # @return [BigDecimal] when infinite_precision is true
   #
   # @see infinite_precision
-  type :return_value, '(Numeric) -> Fixnum'
+  type     :return_value, '(Numeric) -> Fixnum'
   var_type :@fractional, 'Fixnum'
   def fractional
     # Ensure we have a BigDecimal. If the Money object is created
@@ -443,6 +444,7 @@ class Money
   #   Money.new(2000, "USD").exchange_to("EUR")
   #   Money.new(2000, "USD").exchange_to("EUR") {|x| x.round}
   #   Money.new(2000, "USD").exchange_to(Currency.new("EUR"))
+
   def exchange_to(other_currency, &rounding_method)
     other_currency = Currency.wrap(other_currency)
     if self.currency == other_currency
@@ -562,9 +564,22 @@ class Money
 
   private
 
+  type Class, :conversion_precision, '() -> %real'
+
+
+  type Rational, :to_d, '(%real) -> BigDecimal'
+
+  type Money,      :to_d, '() -> BigDecimal'
+  type Rational,   :to_d, '(%integer) -> BigDecimal'
+  type Rational,   :to_d, '() -> BigDecimal'
+  type Float,      :to_d, '(?%integer) -> BigDecimal', typecheck: :now
+  type Bignum,     :to_d, '() -> BigDecimal'
+  type Fixnum,     :to_d, '() -> BigDecimal'
+  type BigDecimal, :to_d, '() -> BigDecimal'
+
   def as_d(num)
     if num.respond_to?(:to_d)
-      num.is_a?(Rational) ? num.to_d(self.class.conversion_precision) : num.to_d
+      num.is_a?(Rational) ? num.type_cast('Rational',force: true).to_d(self.class.conversion_precision) : num.to_d
     else
       BigDecimal.new(num.to_s.empty? ? 0 : num.to_s)
     end

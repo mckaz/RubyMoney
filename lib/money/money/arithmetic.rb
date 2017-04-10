@@ -17,9 +17,9 @@ class Money
     # Library annotations 
     type Kernel, :respond_to?, '(%any) -> %bool'
 
-    type Money::Arithmetic, :fractional, '() -> %real', typecheck: :now, external: :true
+    type Money::Arithmetic, :fractional, '() -> Fixnum', typecheck: :now, external: :true
     type Money::Arithmetic, :currency,   '() -> %real'
-    type Money::Arithmetic, :as_d,       '(%real or Money) -> %real'
+    type Money::Arithmetic, :as_d,       '(%real or Money) -> BigDecimal', typecheck: :now, external: :true
 
     type Class, :new, '(%real, %real) -> %bot'
 

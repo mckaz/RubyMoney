@@ -1,3 +1,6 @@
+require 'rdl'
+require 'types/core'
+
 # encoding: utf-8
 
 require "json"
@@ -98,6 +101,9 @@ class Money
       #   Money::Currency.wrap(nil)   #=> nil
       #   Money::Currency.wrap(c1)    #=> #<Money::Currency id: usd ...>
       #   Money::Currency.wrap("usd") #=> #<Money::Currency id: usd ...>
+      
+     type Money::Currency, 'self.wrap', '(%real) -> %real'
+      
       def wrap(object)
         if object.nil?
           nil

@@ -16,3 +16,7 @@
   - [ ] Add assume statements
   - [ ] Translate const
   - [ ] Define methods like class, etc 
+
+
+Questions
+ - line money.rb.46 takes fractional from arithmetic.rb.20. Is this expected?
