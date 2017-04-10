@@ -17,16 +17,7 @@ class Money
     # Library annotations 
     type Kernel, :respond_to?, '(%any) -> %bool'
 
-    type Money, :fractional,  '() -> %real', typecheck: :now, mixin: :true
-    type Money, :currency,    '() -> %real'
-    type Money, :cents,       '() -> %real'
-    type Money, :zero?,       '() -> %bool'
-    type Money, :exchange_to, '(%real) -> Money'
-    type Money, :<,           '(Money or %real) -> %bool'
-    type Money, :-,           '(Money or %real) -> Money or %real'
-    type Money, :>,           '(Money or %real) -> %bool'
-
-    type Money::Arithmetic, :fractional, '() -> %real', typecheck: :now, mixin: :true
+    type Money::Arithmetic, :fractional, '() -> %real', typecheck: :now, external: :true
     type Money::Arithmetic, :currency,   '() -> %real'
     type Money::Arithmetic, :as_d,       '(%real or Money) -> %real'
 
@@ -319,43 +310,19 @@ class Money
     # @example
     #   Money.new(100).remainder(9) #=> #<Money @fractional=1>
 
-    # NV TODO: requires occurence typing 
-    type '(%real or Money) -> %real or Money' 
+    # NV TODO: type casts instead of occurence typing 
+    type '(%real or Money) -> %real or Money', typecheck: :now  
     def remainder(val)
-      if val.is_a?(Money) && currency != val.currency
+      if val.is_a?(Money) && currency != (val.type_cast('Money', force: true)).currency
         val = val.exchange_to(currency)
       end
 
       if (fractional < 0 && val < 0) || (fractional > 0 && val > 0)
         self.modulo(val)
       else
-        self.modulo(val) - (val.is_a?(Money) ? val : self.class.new(val, currency))
+        self.modulo(val) - (val.is_a?(Money) ? val : self.class.new(val.type_cast('%real', force: true), currency))
       end
     end
-
-  type '(Money) -> %real or Money', typecheck: :now 
-    def remainder_money(val)
-      if val.is_a?(Money) && currency != val.currency
-        val = val.exchange_to(currency)
-      end
-
-      if (fractional < 0 && val < 0) || (fractional > 0 && val > 0)
-        self.modulo(val)
-      else
-        self.modulo(val) - val
-      end
-    end
-
-
-    type '(%real) -> %real or Money', typecheck: :now 
-    def remainder_real(val)
-      if (fractional < 0 && val < 0) || (fractional > 0 && val > 0)
-        self.modulo(val)
-      else
-        self.modulo(val) - self.class.new(val, currency)
-      end
-    end
-
 
     # Return absolute value of self as a new Money object.
     #

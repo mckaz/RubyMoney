@@ -1,6 +1,19 @@
+require 'rdl'
+require 'types/core'
+
 # encoding: utf-8
 require "money/bank/variable_exchange"
 require "money/bank/single_currency"
+
+type Money, :fractional, '() -> Fixnum', typecheck: :now 
+type Money, :currency,    '() -> %real'
+type Money, :cents,       '() -> %real'
+type Money, :zero?,       '() -> %bool'
+type Money, :exchange_to, '(%real) -> Money'
+type Money, :<,           '(Money or %real) -> %bool'
+type Money, :-,           '(Money or %real) -> Money or %real'
+type Money, :>,           '(Money or %real) -> %bool'
+
 require "money/money/arithmetic"
 require "money/money/constructors"
 require "money/money/formatting"
@@ -49,7 +62,8 @@ class Money
   # @return [BigDecimal] when infinite_precision is true
   #
   # @see infinite_precision
-  type '() -> Fixnum', wrap: false
+  type :return_value, '(Numeric) -> Fixnum'
+  var_type :@fractional, 'Fixnum'
   def fractional
     # Ensure we have a BigDecimal. If the Money object is created
     # from YAML, @fractional can end up being set to a Float.

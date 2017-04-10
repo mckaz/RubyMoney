@@ -4,13 +4,14 @@
   - [ ] coerce requires iszero?
   - [ ] remainder required occurence typing 
   - [ ] rewrite `supers` and `rescue`
+- [ ] NV typeckecking of other modules
 - [ ] NV Read JIT paper 
-- [ ] Mixin proper behavior 
+- [x] Mixin proper behavior 
 - [ ] Print verification location
-- [ ] Add test suite 
+- [x] Add test suite 
   - [x] Add Travis Support
-  - [ ] Add verification bench in the test suite
-- [ ] Ask Emina about recursive function
+  - [x] Add verification bench in the test suite
+- [x] Ask Emina about recursive function
 - [ ] Switch from type checking to verification 
   - [ ] Add assume statements
   - [ ] Translate const
