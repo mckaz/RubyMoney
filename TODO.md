@@ -4,6 +4,8 @@
   - [ ] coerce requires iszero?
   - [ ] remainder required occurence typing 
   - [ ] rewrite `supers` and `rescue`
+- [ ] NV typeckecking of `money/money.rb`
+   - [ ] `respond_to?` should be given an interesting type
 - [ ] NV typeckecking of other modules
 - [ ] NV Read JIT paper 
 - [x] Mixin proper behavior 
