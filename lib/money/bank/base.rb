@@ -100,6 +100,7 @@ class Money
       # @yieldreturn [Integer]
       #
       # @return [Money]
+      type :exchange_with, '(Money, %real) ?{(%real) -> %real} -> Money', typecheck: :now 
       def exchange_with(from, to_currency, &block)
         raise NotImplementedError, "#exchange_with must be implemented"
       end

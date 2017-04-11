@@ -9,8 +9,7 @@ type Money, :fractional,  '() -> Fixnum', typecheck: :now
 type Money, :currency,    '() -> %real'
 type Money, :cents,       '() -> Fixnum', typecheck: :now 
 type Money, :zero?,       '() -> %bool'
-type Money, :exchange_to, '(%real) -> Money' 
-# type Money, :exchange_to, '(%real) ?{(%real) -> %real} -> Money' # , typecheck: :now
+type Money, :exchange_to, '(%real) ?{(%real) -> %real} -> Money', typecheck: :now
 type Money, :<,           '(Money or %real) -> %bool'
 type Money, :-,           '(Money or %real) -> Money or %real'
 type Money, :>,           '(Money or %real) -> %bool'
@@ -445,6 +444,8 @@ class Money
   #   Money.new(2000, "USD").exchange_to("EUR") {|x| x.round}
   #   Money.new(2000, "USD").exchange_to(Currency.new("EUR"))
 
+  var_type :@bank, 'Money::Bank::Base'
+  
   def exchange_to(other_currency, &rounding_method)
     other_currency = Currency.wrap(other_currency)
     if self.currency == other_currency
@@ -572,7 +573,7 @@ class Money
   type Money,      :to_d, '() -> BigDecimal'
   type Rational,   :to_d, '(%integer) -> BigDecimal'
   type Rational,   :to_d, '() -> BigDecimal'
-  type Float,      :to_d, '(?%integer) -> BigDecimal', typecheck: :now
+  type Float,      :to_d, '(?%integer) -> BigDecimal'
   type Bignum,     :to_d, '() -> BigDecimal'
   type Fixnum,     :to_d, '() -> BigDecimal'
   type BigDecimal, :to_d, '() -> BigDecimal'
