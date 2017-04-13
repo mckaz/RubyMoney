@@ -116,7 +116,7 @@ class Money
     #   Money.new(1).positive?  #=> true
     #   Money.new(0).positive?  #=> false
     #   Money.new(-1).positive? #=> false
-    type '() -> %bool b {{ b == self.fractional > 0 }}', typecheck: :now
+    type '() -> %bool b {{ b == self.fractional > 0 }}', verify: :later#typecheck: :now
     def positive?
       fractional > 0
     end
