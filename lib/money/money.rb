@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'rdl'
 require 'types/core'
 
@@ -5,11 +6,11 @@ require 'types/core'
 require "money/bank/variable_exchange"
 require "money/bank/single_currency"
 
-type Money, :fractional,  '() -> Fixnum', typecheck: :now 
+#type Money, :fractional,  '() -> Fixnum', typecheck: :now 
 type Money, :currency,    '() -> %real'
-type Money, :cents,       '() -> Fixnum', typecheck: :now 
+#type Money, :cents,       '() -> Fixnum', typecheck: :now 
 type Money, :zero?,       '() -> %bool'
-type Money, :exchange_to, '(%real) ?{(%real) -> %real} -> Money', typecheck: :now
+#type Money, :exchange_to, '(%real) ?{(%real) -> %real} -> Money', typecheck: :now
 type Money, :<,           '(Money or %real) -> %bool'
 type Money, :-,           '(Money or %real) -> Money or %real'
 type Money, :>,           '(Money or %real) -> %bool'

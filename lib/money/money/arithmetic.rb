@@ -13,32 +13,38 @@ class Money
         value.zero?
       end
     end
-
+=begin
+    # don't need these annotations
     # Library annotations 
     type Kernel, :respond_to?, '(%any) -> %bool'
 
-    type Money::Arithmetic, :fractional, '() -> Fixnum', typecheck: :now, external: :true
-    type Money::Arithmetic, :currency,   '() -> %real'
-    type Money::Arithmetic, :as_d,       '(%real or Money) -> BigDecimal', typecheck: :now, external: :true
-
-    type Class, :new, '(%real, %real) -> %bot'
+    #type Rational,   :exchange_to, '(Object) -> Money'
+    #type Float,      :exchange_to, '(%real) -> Money'
+    #type BigDecimal, :exchange_to, '(%real) -> Money'
+    #type Bignum,     :exchange_to, '(%real) -> Money'
+    #type Fixnum,     :exchange_to, '(%real) -> Money'
+    #type Money::Arithmetic, :as_d,       '(%real or Money) -> BigDecimal', typecheck: :now, modular: :true
+    #type Class, :new, '(%real, %real) -> %bot'#, modular: true
+    #type Class, :new, '(%integer f, %integer c) -> Money::Arithmetic m {{ m.fractional == f }}', modular: true 
 
     type Bignum, :value, '() -> %integer'
     type Fixnum, :value, '() -> %integer'
-
-    type Rational,   :exchange_to, '(Object) -> Money'
-    type Float,      :exchange_to, '(%real) -> Money'
-    type BigDecimal, :exchange_to, '(%real) -> Money'
-    type Bignum,     :exchange_to, '(%real) -> Money'
-    type Fixnum,     :exchange_to, '(%real) -> Money'
-
+=end
+    
     # Returns a money object with changed polarity.
     #
     # @return [Money]
     #
     # @example
     #    - Money.new(100) #=> #<Money @fractional=-100>
-    type '() -> Money out {{ self.fractional = -out.fractional }}', typecheck: :now
+
+
+    type :fractional, '() -> Fixnum', modular: :true, pure: true
+    type :currency,   '() -> %integer', modular: true
+    type :initialize, '(%integer f, %integer c) -> self ret {{ ret.fractional == f }}', modular: :true
+
+    
+    type '() -> self out {{ fractional == -out.fractional }}', verify: :later
     def -@
       self.class.new(-fractional, currency)
     end
@@ -58,7 +64,7 @@ class Money
     #   Money.new(100, "USD").eql?(Money.new(100, "GBP"))  #=> false
     #   Money.new(0, "USD").eql?(Money.new(0, "EUR"))      #=> true
     #   Money.new(100).eql?("1.00")                        #=> false
-    type '(Money m) -> %bool b {{ if (m.fractional == 0) && (self.fractional == 0) then b == true end }}', typecheck: :now
+    type '(self m) -> %bool b {{ if m.is_a?(Money) && (m.fractional == 0) && (fractional == 0) then b end }}', verify: :later
     def eql?(other_money)
       if other_money.is_a?(Money)
         (fractional == other_money.fractional && currency == other_money.currency) ||
@@ -81,7 +87,7 @@ class Money
     ## NV: The below type is conservative but generalization requires occurence typing
     ## NV: Parser bug? initial `rescue Money::Bank::UnknownRate` would not type check
 
-    type '(Money) -> Object', typecheck: :now
+    type '(Money) -> Object'#, typecheck: :no1w
     def <=>(other)
       unless other.is_a?(Money)
         return unless other.respond_to?(:zero?) && other.zero?
@@ -97,7 +103,7 @@ class Money
 
     # Uses Comparable's implementation but raises ArgumentError if non-zero
     # numeric value is given.
-    type '(Money or %integer other) -> %bool b {{ self == other || other == 0}}', typecheck: :now
+    #type '(Money or %integer other) -> %bool b {{ self == other || other == 0}}', typecheck: :now
     def ==(other)
       if other.is_a?(Numeric) && !other.zero?
         raise ArgumentError, 'Money#== supports only zero numerics'
@@ -116,7 +122,7 @@ class Money
     #   Money.new(1).positive?  #=> true
     #   Money.new(0).positive?  #=> false
     #   Money.new(-1).positive? #=> false
-    type '() -> %bool b {{ b == self.fractional > 0 }}', verify: :later#typecheck: :now
+    type '() -> %bool b {{ b == fractional > 0 }}', verify: :later
     def positive?
       fractional > 0
     end
@@ -131,7 +137,7 @@ class Money
     #   Money.new(0).negative?  #=> false
     #   Money.new(1).negative?  #=> false
 
-    type :negative?, '() -> %bool b {{ b = self.fractional < 0 }}', typecheck: :now
+    type :negative?, '() -> %bool b {{ b == fractional < 0 }}', verify: :later
     def negative?
       fractional < 0
     end
@@ -169,7 +175,7 @@ class Money
         end
         other = other.exchange_to(currency)
         self.class.new(fractional.public_send(op, other.fractional), currency)
-        type op, '(Money) -> Money', typecheck: :now 
+        #type op, '(Money) -> Money', typecheck: :now 
       end
     end
 
@@ -188,7 +194,7 @@ class Money
     #   Money.new(100) * 2 #=> #<Money @fractional=200>
     #
 
-    type '(%integer) -> Money m {{ m.fractional == self.fractional * value }}', typecheck: :now
+    type '(%integer) -> Money m {{ m.fractional == fractional * value }}'
     def *(value)
       value = value.value if value.is_a?(CoercedNumeric)
       if value.is_a? Numeric
@@ -213,7 +219,7 @@ class Money
     #   Money.new(100) / 10            #=> #<Money @fractional=10>
     #   Money.new(100) / Money.new(10) #=> 10.0
     #
-   type '(%real) -> Money or %real m {{ m.fractional == self.fractional * value }}', typecheck: :now
+   type '(%real) -> Money or %real m {{ m.fractional == fractional * value }}'
    def /(value)
       if value.is_a?(self.class)
         fractional / as_d(value.exchange_to(currency).fractional).to_f
@@ -232,7 +238,7 @@ class Money
     #
     # @see #/
     #
-    type '(%real) -> Money or %real m {{ m.fractional == self.fractional * value }}', typecheck: :now
+    type '(%real) -> Money or %real m {{ m.fractional == fractional * value }}', typecheck: :now
     def div(value)
       self / value
     end
@@ -249,27 +255,34 @@ class Money
     #   Money.new(100).divmod(Money.new(9)) #=> [11, #<Money @fractional=1>]
     # type here
 
-   type Money::Arithmetic, :divmod_money, '(%real or Money) -> [%real, Money]', typecheck: :now 
-   type Money::Arithmetic, :divmod_other, '(%real or Money) -> [%real, Money]', typecheck: :now 
-   type '(%real) -> [%real, Money]', typecheck: :now 
+    #type :as_d, '(%integer or %real in) -> %real out {{ in == out }}', modular: true
+    type :as_d, '(%integer or Float as_d_input) -> %integer as_d_out {{ as_d_input == as_d_out }}', modular: true
+    type :exchange_to, '(%integer e_t_input) -> self e_t_out {{ fractional == e_t_out.fractional }}', modular: true
+    type :cents, '() -> Fixnum cents_out {{ cents_out == fractional }}', modular: true
+    type Money::Arithmetic, :divmod_money, '(self) -> [%integer, self]'#, typecheck: :now 
+    type Money::Arithmetic, :divmod_other, '(Float) -> [self, self]'#, typecheck: :now 
+    #    type '(Float or self input) -> [self or %integer, self] out {{ out[1].fractional == fractional.remainder(input) }}', verify: :new
+    type '(Float input) -> [%integer or self, self] out {{ out[1].type_cast("Money::Arithmetic").fractional == fractional.remainder(input) }}', verify: :try
+    #type '(Float input) -> [%integer or self, self] out {{ out[1].type_cast("Money::Arithmetic").fractional == out[1].type_cast("Money::Arithmetic").fractional }}', verify: :try
+    #type '(Float input) -> [%integer or self, self] out {{ true }}', verify: :try
    def divmod(val)
       if val.is_a?(Money)
-        divmod_money(val)
+        divmod_money(val.type_cast("Money::Arithmetic", force: true))
       else
-        divmod_other(val)
+        divmod_other(val.type_cast("Float", force: true))
       end
     end
 
     def divmod_money(val)
       cents = val.exchange_to(currency).cents
-      quotient, remainder = fractional.divmod(cents)
-      [quotient, self.class.new(remainder, currency)]
+      quot, remainder = fractional.divmod(cents)
+      [quot.type_cast("%integer", force: true), self.class.new(remainder.type_cast("%integer", force: true), currency)]
     end
     private :divmod_money
 
     def divmod_other(val)
-      quotient, remainder = fractional.divmod(as_d(val))
-      [self.class.new(quotient, currency), self.class.new(remainder, currency)]
+      quot, remainder = fractional.divmod(as_d(val))
+      [self.class.new(quot.type_cast("%integer", force: true), currency), self.class.new(remainder.type_cast("%integer", force: true), currency)]
     end
     private :divmod_other
 
@@ -311,7 +324,7 @@ class Money
     #   Money.new(100).remainder(9) #=> #<Money @fractional=1>
 
     # NV TODO: type casts instead of occurence typing 
-    type '(%real or Money) -> %real or Money', typecheck: :now  
+    type '(%real or Money) -> %real or Money'#, typecheck: :now  
     def remainder(val)
       if val.is_a?(Money) && currency != (val.type_cast('Money', force: true)).currency
         val = val.exchange_to(currency)
@@ -330,7 +343,8 @@ class Money
     #
     # @example
     #   Money.new(-100).abs #=> #<Money @fractional=100>
-    type '() -> Money m {{ if self.fractional >= 0 then m.fractional == self.fractional else m.fractional == -self.fractional end }}', typecheck: :now
+#    type '() -> self m {{ if (self.fractional >= 0) then m.fractional == self.fractional else m.fractional == -self.fractional end }}', verify: :late
+    type '() -> self m {{ m.fractional >= 0 }}', verify: :later
     def abs
       self.class.new(fractional.abs, currency)
     end
@@ -342,7 +356,7 @@ class Money
     # @example
     #   Money.new(100).zero? #=> false
     #   Money.new(0).zero?   #=> true
-    type '() -> %bool b {{ b == (self.fractional == 0) }}', typecheck: :now
+    type '() -> %bool b {{ if b then fractional == 0 end }}', verify: :later
     def zero?
       fractional == 0
     end
@@ -355,7 +369,7 @@ class Money
     # @example
     #   Money.new(100).nonzero? #=> #<Money @fractional=100>
     #   Money.new(0).nonzero?   #=> nil
-    type '() -> %bool'
+    type '() -> self or nil out {{ if out.nil? then fractional == 0 end }}', verify: :later
     def nonzero?
       fractional != 0 ? self : nil
     end
